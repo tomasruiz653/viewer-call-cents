@@ -1,4 +1,4 @@
-import { Wrench } from "lucide-react";
+import { Info, Wrench } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SearchBar } from "@/components/search/SearchBar";
@@ -38,10 +38,18 @@ function ToolsViewerContent() {
   const [query, setQuery] = useState("");
   const [ownership, setOwnership] = useState("all");
   const [availability, setAvailability] = useState("all");
+  const [includeNonCore, setIncludeNonCore] = useState(false);
   const debouncedQuery = useDebouncedValue(query);
 
-  const tools = universe?.tools ?? [];
+  const coreTools = universe?.tools ?? [];
+  const nonCoreTools = universe?.nonCoreTools ?? [];
+  const gaps = universe?.toolMetadataGaps ?? [];
   const policies = universe?.policies ?? [];
+
+  const tools = useMemo(
+    () => (includeNonCore ? [...coreTools, ...nonCoreTools] : coreTools),
+    [coreTools, nonCoreTools, includeNonCore],
+  );
 
   const filtered = useMemo(() => {
     return tools.filter((tool) => {
@@ -55,7 +63,11 @@ function ToolsViewerContent() {
 
   const { page, setPage, totalPages, pageItems } = usePagedList(filtered, 20);
 
-  const selected = toolName ? tools.find((t) => t.name === toolName) : undefined;
+  // Look up the selected tool across core + non-core regardless of the toggle, so a direct
+  // link (e.g. from a Policies cross-reference) always resolves.
+  const selected = toolName
+    ? [...coreTools, ...nonCoreTools].find((t) => t.name === toolName)
+    : undefined;
   const relatedDocs = selected
     ? policies.filter((doc) => selected.relatedDocIds.includes(doc.id))
     : [];
@@ -97,7 +109,22 @@ function ToolsViewerContent() {
               </SelectContent>
             </Select>
           </div>
+          <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              className="size-3.5 accent-primary"
+              checked={includeNonCore}
+              onChange={(e) => setIncludeNonCore(e.target.checked)}
+            />
+            Include non-core ({nonCoreTools.length} doc-only / RICH-SKU-only)
+          </label>
         </div>
+        {gaps.length > 0 && (
+          <div className="flex items-start gap-2 border-b bg-amber-500/10 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-300">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
+            <span>{gaps[0]}</span>
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto">
           {pageItems.length > 0 ? (
             <ToolList tools={pageItems} />

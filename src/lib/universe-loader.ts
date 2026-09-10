@@ -70,19 +70,29 @@ function buildUniverse(files: Record<string, Uint8Array>, sourceUrl: string): Un
 
   const personas = normalizePersonas(rawDb);
   const policies = normalizePolicies(rawDocs);
-  const rawTools = toolsEntry ? normalizeTools(decoder.decode(toolsEntry[1])) : [];
-  const tools = linkToolsToDocs(rawTools, policies);
+  const parsedTools = toolsEntry
+    ? normalizeTools(decoder.decode(toolsEntry[1]))
+    : { core: [], nonCore: [], gaps: [] };
+  const tools = linkToolsToDocs(parsedTools.core, policies);
+  const nonCoreTools = linkToolsToDocs(parsedTools.nonCore, policies);
 
   return {
     meta: {
       fetchedAt: new Date().toISOString(),
       etag: null,
       sourceUrl,
-      counts: { personas: personas.length, policies: policies.length, tools: tools.length },
+      counts: {
+        personas: personas.length,
+        policies: policies.length,
+        tools: tools.length,
+        nonCoreTools: nonCoreTools.length,
+      },
     },
     personas,
     policies,
     tools,
+    nonCoreTools,
+    toolMetadataGaps: parsedTools.gaps,
   };
 }
 

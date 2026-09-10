@@ -49,7 +49,10 @@ export interface UniverseMeta {
   counts: {
     personas: number;
     policies: number;
+    /** CORE tool surface only (TOOL_RENAME_MAP.md §§ 1-3). */
     tools: number;
+    /** Explicitly non-core: doc-only phantoms (§4) and RICH-SKU-only tools (§5). */
+    nonCoreTools: number;
   };
 }
 
@@ -57,7 +60,14 @@ export interface Universe {
   meta: UniverseMeta;
   personas: PersonaRecord[];
   policies: PolicyDoc[];
+  /** The CORE Vireo tool surface — what's actually deployed/available. */
   tools: ToolRecord[];
+  /** Tools TOOL_RENAME_MAP.md explicitly marks as not part of the core deployment (doc-only
+   *  phantoms, RICH-SKU-only). Kept separate so they never inflate core counts/filters. */
+  nonCoreTools: ToolRecord[];
+  /** Known, explicit gaps in the source metadata (e.g. an aggregate-only count with no
+   *  per-tool breakdown) — surfaced instead of silently guessed around. */
+  toolMetadataGaps: string[];
 }
 
 export type LoadStatus = "idle" | "loading" | "ready" | "stale" | "error";

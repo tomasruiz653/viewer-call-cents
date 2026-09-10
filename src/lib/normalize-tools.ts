@@ -12,6 +12,18 @@ interface SectionRow {
   cells: string[];
 }
 
+export interface ParsedTools {
+  /** The CORE Vireo tool surface: sections 1-3 only (agent-discoverable, user-discoverable,
+   *  and always-available framework tools). This is "the" tool list for the current deployment. */
+  core: ToolRecord[];
+  /** Everything TOOL_RENAME_MAP.md explicitly says is NOT part of the core surface: section 4
+   *  (doc-only phantoms, never implemented) and section 5 (RICH SKU only, "ignore for the core
+   *  deployment"). Kept separately so it's never mixed into core counts/filters. */
+  nonCore: ToolRecord[];
+  /** Known, explicit limitations of this source, surfaced instead of guessed around. */
+  gaps: string[];
+}
+
 /** Splits TOOL_RENAME_MAP.md into its numbered `## N. Title` sections. */
 function splitSections(markdown: string): { title: string; body: string }[] {
   const lines = markdown.split("\n");
@@ -49,6 +61,18 @@ function extractBacktickNames(text: string): string[] {
   return Array.from(text.matchAll(BACKTICK_NAME)).map((m) => m[1]);
 }
 
+/** Section 4's "name" cells are either a single phantom name, several comma-separated phantom
+ *  names, or an "`old` -> `new`" rename pair. In the rename-pair case only the right-hand
+ *  (current/vireo) name is a real name to surface — the left-hand side is the old tau3 name and
+ *  must not be reported as if it were a Vireo tool. */
+function extractCurrentNames(cell: string): string[] {
+  if (cell.includes("->")) {
+    const rhs = cell.split("->").pop() ?? "";
+    return extractBacktickNames(rhs);
+  }
+  return extractBacktickNames(cell);
+}
+
 function pushTool(
   tools: Map<string, ToolRecord>,
   name: string,
@@ -72,10 +96,18 @@ function pushTool(
  * Parses TOOL_RENAME_MAP.md — the one structured, in-universe source of tool ownership /
  * availability metadata — instead of any hardcoded tool list. Section headings determine
  * ownership/availability/status; nothing here is a fixed enum of Vireo tool names.
+ *
+ * The CORE Vireo surface is sections 1-3 only: 43 agent-discoverable + 1 registry-only stub,
+ * 4 user-discoverable, and 20 always-available (14 agent + 6 user, per the doc's own count) =
+ * 68 tools. Sections 4 (doc-only phantoms) and 5 (RICH SKU only) are explicitly NOT core and
+ * are returned separately so they never inflate the core count or the ownership/availability
+ * filters.
  */
-export function normalizeTools(markdown: string): ToolRecord[] {
+export function normalizeTools(markdown: string): ParsedTools {
   const tools = new Map<string, ToolRecord>();
+  const nonCoreNames = new Set<string>();
   const sections = splitSections(markdown);
+  const gaps: string[] = [];
 
   for (const section of sections) {
     const num = section.title.match(/^(\d+)\./)?.[1];
@@ -120,11 +152,23 @@ export function normalizeTools(markdown: string): ToolRecord[] {
           if (tool && !tool.notes) tool.notes = sentence.replace(/\s+/g, " ").trim();
         }
       }
+      // TOOL_RENAME_MAP.md states this section is 14 agent + 6 user tools in aggregate, but
+      // never says *which* of these 20 names is which — there is no per-tool split to parse.
+      const uniqueNameCount = new Set(names).size;
+      if (uniqueNameCount > 0) {
+        gaps.push(
+          `Section 3 (always-available tools) lists ${uniqueNameCount} names as an aggregate ` +
+            "count (14 agent + 6 user) with no per-tool agent/user label in TOOL_RENAME_MAP.md. " +
+            "Ownership for these is reported as unspecified rather than guessed from the name — " +
+            "supplement with the Banking Tools Reference to resolve.",
+        );
+      }
     } else if (num === "4") {
       for (const row of parseTableRows(section.body)) {
         const description = `${row.cells[1] ?? ""} ${row.cells[2] ?? ""}`;
         if (/literal|not a tool/i.test(description)) continue;
-        for (const name of extractBacktickNames(row.cells[0] ?? "")) {
+        for (const name of extractCurrentNames(row.cells[0] ?? "")) {
+          nonCoreNames.add(name);
           pushTool(
             tools,
             name,
@@ -143,6 +187,7 @@ export function normalizeTools(markdown: string): ToolRecord[] {
       for (const line of bulletLines) {
         const name = extractBacktickNames(line)[0];
         if (!name) continue;
+        nonCoreNames.add(name);
         const annotation = line.match(/\(([^)]+)\)/)?.[1] ?? "";
         const ownership: ToolOwnership = /agent/i.test(annotation)
           ? "agent"
@@ -154,6 +199,8 @@ export function normalizeTools(markdown: string): ToolRecord[] {
           : /discoverable/i.test(annotation)
             ? "discoverable"
             : "unspecified";
+        // Section 5 is explicitly "ignore for the core deployment" — never let it override a
+        // status/ownership a tool already earned from an earlier (core) section.
         pushTool(
           tools,
           name,
@@ -164,7 +211,16 @@ export function normalizeTools(markdown: string): ToolRecord[] {
     }
   }
 
-  return Array.from(tools.values()).sort((a, b) => a.name.localeCompare(b.name));
+  const core: ToolRecord[] = [];
+  const nonCore: ToolRecord[] = [];
+  for (const tool of tools.values()) {
+    (nonCoreNames.has(tool.name) ? nonCore : core).push(tool);
+  }
+
+  core.sort((a, b) => a.name.localeCompare(b.name));
+  nonCore.sort((a, b) => a.name.localeCompare(b.name));
+
+  return { core, nonCore, gaps };
 }
 
 /** Cross-links tools to policy docs whose content mentions the exact tool name — computed live
