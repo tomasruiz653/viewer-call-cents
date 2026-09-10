@@ -36,6 +36,9 @@ function pickDisplayName(record: UniverseRecord, fallbackId: string): string {
  * if its value is itself a known record id in some table, recursing (bounded) until a users-table
  * id is reached. This avoids hardcoding which field names ("user_id" vs "referrer_id" vs
  * "account_id" -> account -> user, etc.) link which tables — it's derived from the live data.
+ *
+ * Records with no "*_id" path at all (e.g. an application record that only carries a free-text
+ * name) fall back to an exact, unambiguous display-name match — see resolveByExactNameMatch.
  */
 export function normalizePersonas(rawDb: unknown): PersonaRecord[] {
   if (!isPlainRecord(rawDb)) return [];
@@ -68,6 +71,29 @@ export function normalizePersonas(rawDb: unknown): PersonaRecord[] {
     });
   }
 
+  // Fallback for records with no "*_id" path to a persona at all (e.g. an intake-style record
+  // that only carries a free-text name, not yet an account/user id). Keyed by exact,
+  // case-insensitive display name so it only fires on an unambiguous match — if two personas
+  // share a name, or the value doesn't match any persona, we leave the record unresolved rather
+  // than guess. No table or field name is hardcoded: any string field on any record is eligible.
+  const userIdsByNormalizedName = new Map<string, string[]>();
+  for (const persona of personaByUserId.values()) {
+    const key = persona.displayName.trim().toLowerCase();
+    if (!key) continue;
+    const list = userIdsByNormalizedName.get(key) ?? [];
+    list.push(persona.id);
+    userIdsByNormalizedName.set(key, list);
+  }
+
+  function resolveByExactNameMatch(record: UniverseRecord): string | undefined {
+    for (const value of Object.values(record)) {
+      if (typeof value !== "string") continue;
+      const candidates = userIdsByNormalizedName.get(value.trim().toLowerCase());
+      if (candidates && candidates.length === 1) return candidates[0];
+    }
+    return undefined;
+  }
+
   const MAX_HOPS = 4;
 
   function resolveOwningUser(record: UniverseRecord, depth: number): string | undefined {
@@ -90,7 +116,7 @@ export function normalizePersonas(rawDb: unknown): PersonaRecord[] {
   for (const [tableName, table] of Object.entries(db)) {
     if (tableName === usersTableName || !isPlainRecord(table?.data)) continue;
     for (const record of Object.values(table.data)) {
-      const ownerId = resolveOwningUser(record, 0);
+      const ownerId = resolveOwningUser(record, 0) ?? resolveByExactNameMatch(record);
       if (!ownerId) continue;
       const persona = personaByUserId.get(ownerId);
       if (!persona) continue;

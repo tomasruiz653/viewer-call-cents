@@ -96,11 +96,27 @@ function buildUniverse(files: Record<string, Uint8Array>, sourceUrl: string): Un
   };
 }
 
-export async function fetchAndParseUniverse(url: string = UNIVERSE_URL): Promise<{
+/** Appends a one-off query param so the request is a distinct URL from the browser's HTTP
+ *  cache's point of view. This is a client-side fetch option plus a URL change — no custom
+ *  request header is added, so the request stays a CORS-simple GET (this host 403s any request
+ *  that would need a preflight). It's a best-effort bust: whether the CDN edge itself also
+ *  treats the query string as part of its cache key is outside our control (see universe
+ *  architecture notes) — `cache: "no-store"` at least guarantees the *browser's own* cache is
+ *  skipped. */
+function withCacheBust(url: string): string {
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}_vireoRefresh=${Date.now()}`;
+}
+
+export async function fetchAndParseUniverse(
+  url: string = UNIVERSE_URL,
+  options: { bustCache?: boolean } = {},
+): Promise<{
   universe: Universe;
   freshness: FreshnessSignal;
 }> {
-  const res = await fetch(url);
+  const requestUrl = options.bustCache ? withCacheBust(url) : url;
+  const res = await fetch(requestUrl, options.bustCache ? { cache: "no-store" } : undefined);
   if (!res.ok) {
     throw new Error(`Failed to fetch universe archive: ${res.status} ${res.statusText}`);
   }
@@ -134,7 +150,11 @@ export async function loadUniverse(options: { force?: boolean } = {}): Promise<L
       return { universe: cached.universe, fromCache: true, possiblyStale: false };
     }
   }
-  const { universe, freshness } = await fetchAndParseUniverse();
+  // A forced (manual "Refresh universe") load must not silently hand back the same bytes the
+  // browser's HTTP cache already has for this exact URL — bust it explicitly.
+  const { universe, freshness } = await fetchAndParseUniverse(UNIVERSE_URL, {
+    bustCache: options.force,
+  });
   const entry: CachedUniverse = {
     universe,
     lastModified: freshness.lastModified,
