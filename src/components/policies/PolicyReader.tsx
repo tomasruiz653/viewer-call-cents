@@ -1,25 +1,10 @@
 import { Wrench } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
+import remarkGfm from "remark-gfm";
 import { CopyButton } from "@/components/shared/CopyButton";
-import { highlightSegments } from "@/lib/search";
+import { rehypeHighlightQuery } from "@/lib/rehype-highlight-query";
 import type { PolicyDoc, ToolRecord } from "@/types/universe";
-
-function HighlightedText({ text, query }: { text: string; query: string }) {
-  const segments = highlightSegments(text, query);
-  return (
-    <>
-      {segments.map((seg, i) =>
-        seg.match ? (
-          <mark key={i} className="search-highlight">
-            {seg.text}
-          </mark>
-        ) : (
-          <span key={i}>{seg.text}</span>
-        ),
-      )}
-    </>
-  );
-}
 
 export function PolicyReader({
   doc,
@@ -63,8 +48,17 @@ export function PolicyReader({
             ))}
           </div>
         )}
-        <div className="whitespace-pre-wrap text-sm leading-relaxed">
-          <HighlightedText text={doc.content} query={query} />
+        <div
+          className="prose prose-sm dark:prose-invert max-w-none
+                     prose-headings:font-semibold prose-headings:tracking-tight
+                     prose-table:text-xs prose-th:bg-muted/50"
+        >
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[[rehypeHighlightQuery, { query }]]}
+          >
+            {doc.content}
+          </ReactMarkdown>
         </div>
       </div>
     </div>
