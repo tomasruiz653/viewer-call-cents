@@ -60,7 +60,7 @@ export interface Universe {
   meta: UniverseMeta;
   personas: PersonaRecord[];
   policies: PolicyDoc[];
-  /** The CORE Vireo tool surface — what's actually deployed/available. */
+  /** The CORE tool surface — what's actually deployed/available. */
   tools: ToolRecord[];
   /** Tools TOOL_RENAME_MAP.md explicitly marks as not part of the core deployment (doc-only
    *  phantoms, RICH-SKU-only). Kept separate so they never inflate core counts/filters. */

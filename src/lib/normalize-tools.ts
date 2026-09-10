@@ -13,7 +13,7 @@ interface SectionRow {
 }
 
 export interface ParsedTools {
-  /** The CORE Vireo tool surface: sections 1-3 only (agent-discoverable, user-discoverable,
+  /** The CORE tool surface: sections 1-3 only (agent-discoverable, user-discoverable,
    *  and always-available framework tools). This is "the" tool list for the current deployment. */
   core: ToolRecord[];
   /** Everything TOOL_RENAME_MAP.md explicitly says is NOT part of the core surface: section 4
@@ -63,8 +63,8 @@ function extractBacktickNames(text: string): string[] {
 
 /** Section 4's "name" cells are either a single phantom name, several comma-separated phantom
  *  names, or an "`old` -> `new`" rename pair. In the rename-pair case only the right-hand
- *  (current/vireo) name is a real name to surface — the left-hand side is the old tau3 name and
- *  must not be reported as if it were a Vireo tool. */
+ *  (current) name is a real name to surface — the left-hand side is the old tau3 name and
+ *  must not be reported as if it were a current tool. */
 function extractCurrentNames(cell: string): string[] {
   if (cell.includes("->")) {
     const rhs = cell.split("->").pop() ?? "";
@@ -95,9 +95,9 @@ function pushTool(
 /**
  * Parses TOOL_RENAME_MAP.md — the one structured, in-universe source of tool ownership /
  * availability metadata — instead of any hardcoded tool list. Section headings determine
- * ownership/availability/status; nothing here is a fixed enum of Vireo tool names.
+ * ownership/availability/status; nothing here is a fixed enum of tool names.
  *
- * The CORE Vireo surface is sections 1-3 only: 43 agent-discoverable + 1 registry-only stub,
+ * The CORE surface is sections 1-3 only: 43 agent-discoverable + 1 registry-only stub,
  * 4 user-discoverable, and 20 always-available (14 agent + 6 user, per the doc's own count) =
  * 68 tools. Sections 4 (doc-only phantoms) and 5 (RICH SKU only) are explicitly NOT core and
  * are returned separately so they never inflate the core count or the ownership/availability
@@ -116,12 +116,12 @@ export function normalizeTools(markdown: string): ParsedTools {
     if (num === "1" || num === "2") {
       const ownership: ToolOwnership = num === "1" ? "agent" : "user";
       for (const row of parseTableRows(section.body)) {
-        const vireoName = extractBacktickNames(row.cells[1] ?? "")[0];
-        if (!vireoName) continue;
+        const currentName = extractBacktickNames(row.cells[1] ?? "")[0];
+        if (!currentName) continue;
         const note = row.cells[2]?.trim();
         pushTool(
           tools,
-          vireoName,
+          currentName,
           {
             ownership,
             availability: "discoverable",

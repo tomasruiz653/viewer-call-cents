@@ -29,7 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-svh">
       <aside className="hidden w-56 shrink-0 flex-col border-r bg-card/40 md:flex">
         <div className="px-4 py-4">
-          <div className="text-sm font-semibold tracking-tight">Vireo Contributor Tools</div>
+          <div className="text-sm font-semibold tracking-tight">Money Heist Contributor Tools</div>
           <div className="text-xs text-muted-foreground">Banking universe viewers</div>
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-2">

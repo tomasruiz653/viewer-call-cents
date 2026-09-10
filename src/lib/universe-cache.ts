@@ -1,7 +1,7 @@
 import { type IDBPDatabase, openDB } from "idb";
 import type { Universe } from "@/types/universe";
 
-const DB_NAME = "vireo-universe-cache";
+const DB_NAME = "money-heist-universe-cache";
 const STORE = "universe";
 const KEY = "current";
 

@@ -105,7 +105,7 @@ function buildUniverse(files: Record<string, Uint8Array>, sourceUrl: string): Un
  *  skipped. */
 function withCacheBust(url: string): string {
   const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}_vireoRefresh=${Date.now()}`;
+  return `${url}${separator}_refresh=${Date.now()}`;
 }
 
 export async function fetchAndParseUniverse(

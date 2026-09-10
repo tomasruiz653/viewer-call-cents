@@ -1,6 +1,6 @@
-# Vireo Contributor Viewers
+# Money Heist Contributor Viewers
 
-Three contributor-facing viewers over the live Vireo Financial banking universe:
+Three contributor-facing viewers over the live banking universe:
 
 - **`/persona`** — search customers and inspect their related banking state (accounts, cards,
   transactions, disputes, referrals, etc.)
@@ -11,7 +11,7 @@ Three contributor-facing viewers over the live Vireo Financial banking universe:
 
 Every customer, account, policy document, and tool shown in the app is fetched **at runtime**
 from the universe archive configured by `VITE_UNIVERSE_URL` (see `.env`). Nothing about the
-Vireo dataset — names, IDs, balances, policy text, tool names — is baked into the frontend
+underlying dataset — names, IDs, balances, policy text, tool names — is baked into the frontend
 bundle. If the archive at that URL is replaced, reopening/refreshing the app picks up the new
 data with no rebuild.
 
