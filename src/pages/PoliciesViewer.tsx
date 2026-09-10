@@ -5,6 +5,7 @@ import { PolicyList } from "@/components/policies/PolicyList";
 import { PolicyReader } from "@/components/policies/PolicyReader";
 import { SearchBar } from "@/components/search/SearchBar";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { MasterDetailLayout } from "@/components/shared/MasterDetailLayout";
 import { PaginationBar } from "@/components/shared/PaginationBar";
 import { UniverseGate } from "@/components/shared/UniverseGate";
 import {
@@ -44,43 +45,46 @@ function PoliciesViewerContent() {
   const relatedTools = selected ? tools.filter((t) => t.relatedDocIds.includes(selected.id)) : [];
 
   return (
-    <div className="flex h-full">
-      <div className="flex w-full max-w-sm shrink-0 flex-col border-r">
-        <div className="space-y-2 border-b p-3">
-          <SearchBar
-            value={query}
-            onChange={setQuery}
-            placeholder="Search titles & full text…"
-            resultCount={filtered.length}
-            autoFocus
-          />
-          {categories.length > 1 && (
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="h-8 w-full text-xs">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c.replace(/_/g, " ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {pageItems.length > 0 ? (
-            <PolicyList docs={pageItems} query={debouncedQuery} />
-          ) : (
-            <EmptyState icon={FileText} title="No matching documents" description="Try a broader search term." />
-          )}
-        </div>
-        <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
-      </div>
-      <div className="min-w-0 flex-1">
-        {selected ? (
+    <MasterDetailLayout
+      hasSelection={!!selected}
+      list={
+        <>
+          <div className="space-y-2 border-b p-3">
+            <SearchBar
+              value={query}
+              onChange={setQuery}
+              placeholder="Search titles & full text…"
+              resultCount={filtered.length}
+              autoFocus
+            />
+            {categories.length > 1 && (
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="h-8 w-full text-xs">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {pageItems.length > 0 ? (
+              <PolicyList docs={pageItems} />
+            ) : (
+              <EmptyState icon={FileText} title="No matching documents" description="Try a broader search term." />
+            )}
+          </div>
+          <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
+        </>
+      }
+      detail={
+        selected ? (
           <PolicyReader doc={selected} query={debouncedQuery} relatedTools={relatedTools} />
         ) : (
           <EmptyState
@@ -88,9 +92,9 @@ function PoliciesViewerContent() {
             title="Select a document"
             description="Search the Banking knowledge base and pick a document to read."
           />
-        )}
-      </div>
-    </div>
+        )
+      }
+    />
   );
 }
 

@@ -2,6 +2,7 @@ import { Wrench } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
 import remarkGfm from "remark-gfm";
+import { BackButton } from "@/components/shared/BackButton";
 import { CopyButton } from "@/components/shared/CopyButton";
 import { rehypeHighlightQuery } from "@/lib/rehype-highlight-query";
 import type { PolicyDoc, ToolRecord } from "@/types/universe";
@@ -19,6 +20,7 @@ export function PolicyReader({
     <div className="h-full overflow-y-auto">
       <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b bg-background/95 px-6 py-3 backdrop-blur">
         <div className="min-w-0">
+          <BackButton to="/policies" label="Back to documents" />
           <h1 className="truncate text-base font-semibold tracking-tight">{doc.title}</h1>
           <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
             <code className="rounded bg-muted px-1.5 py-0.5">{doc.id}</code>

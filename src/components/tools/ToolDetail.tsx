@@ -2,6 +2,7 @@ import { FileText, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AvailabilityBadge, OwnershipBadge, StatusBadge } from "@/components/tools/ToolBadges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BackButton } from "@/components/shared/BackButton";
 import { CopyButton } from "@/components/shared/CopyButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { PolicyDoc, ToolRecord } from "@/types/universe";
@@ -16,6 +17,7 @@ export function ToolDetail({
   return (
     <ScrollArea className="h-full">
       <div className="mx-auto max-w-3xl space-y-4 p-6">
+        <BackButton to="/tools" label="Back to tools" />
         <div>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mono text-lg font-semibold tracking-tight">{tool.name}</h1>

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SearchBar } from "@/components/search/SearchBar";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { MasterDetailLayout } from "@/components/shared/MasterDetailLayout";
 import { PaginationBar } from "@/components/shared/PaginationBar";
 import { UniverseGate } from "@/components/shared/UniverseGate";
 import { ToolDetail } from "@/components/tools/ToolDetail";
@@ -73,69 +74,72 @@ function ToolsViewerContent() {
     : [];
 
   return (
-    <div className="flex h-full">
-      <div className="flex w-full max-w-sm shrink-0 flex-col border-r">
-        <div className="space-y-2 border-b p-3">
-          <SearchBar
-            value={query}
-            onChange={setQuery}
-            placeholder="Search tool names & notes…"
-            resultCount={filtered.length}
-            autoFocus
-          />
-          <div className="flex gap-2">
-            <Select value={ownership} onValueChange={setOwnership}>
-              <SelectTrigger className="h-8 flex-1 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {OWNERSHIP_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={availability} onValueChange={setAvailability}>
-              <SelectTrigger className="h-8 flex-1 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {AVAILABILITY_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <input
-              type="checkbox"
-              className="size-3.5 accent-primary"
-              checked={includeNonCore}
-              onChange={(e) => setIncludeNonCore(e.target.checked)}
+    <MasterDetailLayout
+      hasSelection={!!selected}
+      list={
+        <>
+          <div className="space-y-2 border-b p-3">
+            <SearchBar
+              value={query}
+              onChange={setQuery}
+              placeholder="Search tool names & notes…"
+              resultCount={filtered.length}
+              autoFocus
             />
-            Include non-core ({nonCoreTools.length} doc-only / RICH-SKU-only)
-          </label>
-        </div>
-        {gaps.length > 0 && (
-          <div className="flex items-start gap-2 border-b bg-amber-500/10 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-300">
-            <Info className="mt-0.5 size-3.5 shrink-0" />
-            <span>{gaps[0]}</span>
+            <div className="flex gap-2">
+              <Select value={ownership} onValueChange={setOwnership}>
+                <SelectTrigger className="h-8 flex-1 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {OWNERSHIP_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={availability} onValueChange={setAvailability}>
+                <SelectTrigger className="h-8 flex-1 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AVAILABILITY_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                className="size-3.5 accent-primary"
+                checked={includeNonCore}
+                onChange={(e) => setIncludeNonCore(e.target.checked)}
+              />
+              Include non-core ({nonCoreTools.length} doc-only / RICH-SKU-only)
+            </label>
           </div>
-        )}
-        <div className="flex-1 overflow-y-auto">
-          {pageItems.length > 0 ? (
-            <ToolList tools={pageItems} />
-          ) : (
-            <EmptyState icon={Wrench} title="No matching tools" description="Adjust your search or filters." />
+          {gaps.length > 0 && (
+            <div className="flex items-start gap-2 border-b bg-amber-500/10 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-300">
+              <Info className="mt-0.5 size-3.5 shrink-0" />
+              <span>{gaps[0]}</span>
+            </div>
           )}
-        </div>
-        <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
-      </div>
-      <div className="min-w-0 flex-1">
-        {selected ? (
+          <div className="flex-1 overflow-y-auto">
+            {pageItems.length > 0 ? (
+              <ToolList tools={pageItems} />
+            ) : (
+              <EmptyState icon={Wrench} title="No matching tools" description="Adjust your search or filters." />
+            )}
+          </div>
+          <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
+        </>
+      }
+      detail={
+        selected ? (
           <ToolDetail tool={selected} relatedDocs={relatedDocs} />
         ) : (
           <EmptyState
@@ -143,9 +147,9 @@ function ToolsViewerContent() {
             title="Select a tool"
             description="Browse agent/user tools discovered from the current universe metadata."
           />
-        )}
-      </div>
-    </div>
+        )
+      }
+    />
   );
 }
 

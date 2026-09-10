@@ -22,11 +22,11 @@ export function UniverseStatusBar() {
   const { status, universe, error, updateAvailable, refresh } = useUniverse();
 
   return (
-    <div className="flex items-center gap-3 text-sm">
+    <div className="flex items-center gap-2 text-sm sm:gap-3">
       {status === "loading" && (
         <span className="flex items-center gap-1.5 text-muted-foreground">
-          <Loader2 className="size-3.5 animate-spin" />
-          Loading universe…
+          <Loader2 className="size-3.5 shrink-0 animate-spin" />
+          <span className="hidden sm:inline">Loading universe…</span>
         </span>
       )}
 
@@ -34,8 +34,8 @@ export function UniverseStatusBar() {
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="flex items-center gap-1.5 text-destructive">
-              <AlertTriangle className="size-3.5" />
-              Failed to load
+              <AlertTriangle className="size-3.5 shrink-0" />
+              <span className="hidden sm:inline">Failed to load</span>
             </span>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">{error}</TooltipContent>
@@ -46,8 +46,10 @@ export function UniverseStatusBar() {
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-500" />
-              Runtime universe · refreshed {relativeTime(universe.meta.fetchedAt)}
+              <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-500" />
+              <span className="hidden sm:inline">
+                Runtime universe · refreshed {relativeTime(universe.meta.fetchedAt)}
+              </span>
             </span>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">
@@ -60,7 +62,9 @@ export function UniverseStatusBar() {
       )}
 
       {updateAvailable && (
-        <span className="text-amber-600 dark:text-amber-500">A newer universe may be available</span>
+        <span className="hidden text-amber-600 sm:inline dark:text-amber-500">
+          A newer universe may be available
+        </span>
       )}
 
       <Button
@@ -68,10 +72,10 @@ export function UniverseStatusBar() {
         variant="outline"
         onClick={refresh}
         disabled={status === "loading"}
-        className="h-7 gap-1.5"
+        className="h-7 gap-1.5 px-2 sm:px-3"
       >
         <RefreshCw className={status === "loading" ? "size-3.5 animate-spin" : "size-3.5"} />
-        Refresh universe
+        <span className="hidden sm:inline">Refresh universe</span>
       </Button>
     </div>
   );

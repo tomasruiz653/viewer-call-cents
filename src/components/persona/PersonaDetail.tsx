@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BackButton } from "@/components/shared/BackButton";
 import { CopyButton } from "@/components/shared/CopyButton";
 import { RelatedRecordsTable } from "@/components/persona/RelatedRecordsTable";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,6 +19,7 @@ export function PersonaDetail({ persona }: { persona: PersonaRecord }) {
   return (
     <ScrollArea className="h-full">
       <div className="mx-auto max-w-4xl space-y-4 p-6">
+        <BackButton to="/persona" label="Back to personas" />
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">{persona.displayName}</h1>
