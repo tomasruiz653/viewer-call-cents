@@ -158,8 +158,8 @@ export function normalizeTools(markdown: string): ParsedTools {
       if (uniqueNameCount > 0) {
         gaps.push(
           `Section 3 (always-available tools) lists ${uniqueNameCount} names as an aggregate ` +
-            "count (14 agent + 6 user) with no per-tool agent/user label in TOOL_RENAME_MAP.md. " +
-            "Ownership for these is reported as unspecified rather than guessed from the name — " +
+            "count (14 agent + 6 user) with no per-tool agent/user label in the tool file itself. " +
+            "Ownership for these is reported as unspecified rather than guessed from the name, " +
             "supplement with the Banking Tools Reference to resolve.",
         );
       }
