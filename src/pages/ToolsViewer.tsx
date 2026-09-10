@@ -1,0 +1,131 @@
+import { Wrench } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { SearchBar } from "@/components/search/SearchBar";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { PaginationBar } from "@/components/shared/PaginationBar";
+import { UniverseGate } from "@/components/shared/UniverseGate";
+import { ToolDetail } from "@/components/tools/ToolDetail";
+import { ToolList } from "@/components/tools/ToolList";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useUniverse } from "@/hooks/useUniverse";
+import { usePagedList } from "@/lib/pagination";
+import { useDebouncedValue } from "@/lib/search";
+
+const OWNERSHIP_OPTIONS = [
+  { value: "all", label: "All ownership" },
+  { value: "agent", label: "Agent" },
+  { value: "user", label: "User" },
+  { value: "unspecified", label: "Unspecified" },
+];
+
+const AVAILABILITY_OPTIONS = [
+  { value: "all", label: "All availability" },
+  { value: "always-available", label: "Always available" },
+  { value: "discoverable", label: "Discoverable" },
+  { value: "unspecified", label: "Unspecified" },
+];
+
+function ToolsViewerContent() {
+  const { universe } = useUniverse();
+  const { toolName } = useParams();
+  const [query, setQuery] = useState("");
+  const [ownership, setOwnership] = useState("all");
+  const [availability, setAvailability] = useState("all");
+  const debouncedQuery = useDebouncedValue(query);
+
+  const tools = universe?.tools ?? [];
+  const policies = universe?.policies ?? [];
+
+  const filtered = useMemo(() => {
+    return tools.filter((tool) => {
+      if (ownership !== "all" && tool.ownership !== ownership) return false;
+      if (availability !== "all" && tool.availability !== availability) return false;
+      if (!debouncedQuery.trim()) return true;
+      const haystack = `${tool.name} ${tool.notes ?? ""}`.toLowerCase();
+      return haystack.includes(debouncedQuery.toLowerCase());
+    });
+  }, [tools, ownership, availability, debouncedQuery]);
+
+  const { page, setPage, totalPages, pageItems } = usePagedList(filtered, 20);
+
+  const selected = toolName ? tools.find((t) => t.name === toolName) : undefined;
+  const relatedDocs = selected
+    ? policies.filter((doc) => selected.relatedDocIds.includes(doc.id))
+    : [];
+
+  return (
+    <div className="flex h-full">
+      <div className="flex w-full max-w-sm shrink-0 flex-col border-r">
+        <div className="space-y-2 border-b p-3">
+          <SearchBar
+            value={query}
+            onChange={setQuery}
+            placeholder="Search tool names & notes…"
+            resultCount={filtered.length}
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <Select value={ownership} onValueChange={setOwnership}>
+              <SelectTrigger className="h-8 flex-1 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {OWNERSHIP_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={availability} onValueChange={setAvailability}>
+              <SelectTrigger className="h-8 flex-1 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {AVAILABILITY_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {pageItems.length > 0 ? (
+            <ToolList tools={pageItems} />
+          ) : (
+            <EmptyState icon={Wrench} title="No matching tools" description="Adjust your search or filters." />
+          )}
+        </div>
+        <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
+      </div>
+      <div className="min-w-0 flex-1">
+        {selected ? (
+          <ToolDetail tool={selected} relatedDocs={relatedDocs} />
+        ) : (
+          <EmptyState
+            icon={Wrench}
+            title="Select a tool"
+            description="Browse agent/user tools discovered from the current universe metadata."
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function ToolsViewer() {
+  return (
+    <UniverseGate>
+      <ToolsViewerContent />
+    </UniverseGate>
+  );
+}
