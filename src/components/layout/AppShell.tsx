@@ -1,4 +1,13 @@
-import { FileText, Moon, PanelLeftClose, PanelLeftOpen, Sun, Users, Wrench } from "lucide-react";
+import {
+  FileText,
+  Moon,
+  Package,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Sun,
+  Users,
+  Wrench,
+} from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +17,7 @@ import { UniverseStatusBar } from "@/components/layout/UniverseStatusBar";
 const NAV_ITEMS = [
   { to: "/persona", label: "Persona", icon: Users, description: "Customers & their banking state" },
   { to: "/policies", label: "Policies", icon: FileText, description: "Banking knowledge base" },
+  { to: "/products", label: "Products", icon: Package, description: "Products & their documents" },
   { to: "/tools", label: "Tools", icon: Wrench, description: "Agent & user tool metadata" },
 ] as const;
 

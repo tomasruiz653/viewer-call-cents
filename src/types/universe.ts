@@ -25,6 +25,17 @@ export interface PolicyDoc {
   searchText: string;
 }
 
+export interface ProductGroup {
+  /** The document-id slug shared by every doc in this group (id minus "doc_" and the trailing
+   *  sequence number) — stable and unique per product, independent of the display name. */
+  key: string;
+  /** Derived from the common "Name: ..." prefix shared by this product's document titles, or a
+   *  humanized fallback of `key` when no such prefix exists. Not a hardcoded catalog. */
+  name: string;
+  docIds: string[];
+  searchText: string;
+}
+
 export type ToolOwnership = "agent" | "user" | "unspecified";
 export type ToolAvailability = "always-available" | "discoverable" | "unspecified";
 export type ToolStatus = "core" | "rich-sku-only" | "phantom" | "unspecified";
@@ -49,6 +60,7 @@ export interface UniverseMeta {
   counts: {
     personas: number;
     policies: number;
+    products: number;
     /** CORE tool surface only (TOOL_RENAME_MAP.md §§ 1-3). */
     tools: number;
     /** Explicitly non-core: doc-only phantoms (§4) and RICH-SKU-only tools (§5). */
@@ -60,6 +72,7 @@ export interface Universe {
   meta: UniverseMeta;
   personas: PersonaRecord[];
   policies: PolicyDoc[];
+  products: ProductGroup[];
   /** The CORE tool surface — what's actually deployed/available. */
   tools: ToolRecord[];
   /** Tools TOOL_RENAME_MAP.md explicitly marks as not part of the core deployment (doc-only

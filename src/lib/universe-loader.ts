@@ -1,6 +1,7 @@
 import { unzip } from "fflate";
 import { normalizePersonas } from "@/lib/normalize-persona";
 import { normalizePolicies } from "@/lib/normalize-policies";
+import { deriveProducts } from "@/lib/normalize-products";
 import { linkToolsToDocs, normalizeTools } from "@/lib/normalize-tools";
 import {
   type CachedUniverse,
@@ -70,6 +71,7 @@ function buildUniverse(files: Record<string, Uint8Array>, sourceUrl: string): Un
 
   const personas = normalizePersonas(rawDb);
   const policies = normalizePolicies(rawDocs);
+  const products = deriveProducts(policies);
   const parsedTools = toolsEntry
     ? normalizeTools(decoder.decode(toolsEntry[1]))
     : { core: [], nonCore: [], gaps: [] };
@@ -84,12 +86,14 @@ function buildUniverse(files: Record<string, Uint8Array>, sourceUrl: string): Un
       counts: {
         personas: personas.length,
         policies: policies.length,
+        products: products.length,
         tools: tools.length,
         nonCoreTools: nonCoreTools.length,
       },
     },
     personas,
     policies,
+    products,
     tools,
     nonCoreTools,
     toolMetadataGaps: parsedTools.gaps,

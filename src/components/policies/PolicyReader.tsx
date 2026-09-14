@@ -1,10 +1,8 @@
 import { Wrench } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
-import remarkGfm from "remark-gfm";
+import { MarkdownContent } from "@/components/policies/MarkdownContent";
 import { BackButton } from "@/components/shared/BackButton";
 import { CopyButton } from "@/components/shared/CopyButton";
-import { rehypeHighlightQuery } from "@/lib/rehype-highlight-query";
 import type { PolicyDoc, ToolRecord } from "@/types/universe";
 
 export function PolicyReader({
@@ -50,18 +48,7 @@ export function PolicyReader({
             ))}
           </div>
         )}
-        <div
-          className="prose prose-sm dark:prose-invert max-w-none
-                     prose-headings:font-semibold prose-headings:tracking-tight
-                     prose-table:text-xs prose-th:bg-muted/50"
-        >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[[rehypeHighlightQuery, { query }]]}
-          >
-            {doc.content}
-          </ReactMarkdown>
-        </div>
+        <MarkdownContent content={doc.content} query={query} />
       </div>
     </div>
   );
